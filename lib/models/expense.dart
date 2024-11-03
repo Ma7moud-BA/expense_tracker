@@ -1,8 +1,18 @@
+import "package:flutter/material.dart";
 import "package:uuid/uuid.dart";
+import 'package:intl/intl.dart';
 
 final uuid = Uuid();
+final formatter = DateFormat.yMd();
 
 enum Category { food, travel, leisure, work }
+
+const categoryIcons = {
+  Category.food: Icons.lunch_dining,
+  Category.travel: Icons.flight_takeoff,
+  Category.leisure: Icons.movie,
+  Category.work: Icons.work
+};
 
 class Expense {
   Expense(
@@ -20,6 +30,13 @@ class Expense {
   final double amount;
   final DateTime date;
   final Category category;
+
+  // getter : a property that dynamically derived based on other class properties
+
+  get formattedDate {
+    // use "flutter pub add intl" to download the package
+    return formatter.format(date);
+  }
 }
 
 //  why not using String for category? - to prevent the typo errors when adding an unwanted category
