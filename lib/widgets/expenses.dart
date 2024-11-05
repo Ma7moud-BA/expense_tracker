@@ -28,11 +28,21 @@ class _ExpensesState extends State<Expenses> {
     ),
   ];
 
+  void addExpense(Expense expense) {
+    setState(() {
+      _registeredExpenses.add(expense);
+    });
+  }
+
   void _openAddExpenseOverlay() {
     // showModalBottomSheet and other similar functions are built in function by flutter to show some UI like a date picker or dialog
     showModalBottomSheet(
+      isScrollControlled:
+          true, // this will make the modal take full screen to prevent the keyboard from overlapping over the input fields
       context: context,
-      builder: (ctx) => const NewExpense(),
+      builder: (ctx) => NewExpense(
+        onAddExpense: addExpense,
+      ),
     );
   }
 
