@@ -34,6 +34,29 @@ class _ExpensesState extends State<Expenses> {
     });
   }
 
+  void _removeExpense(Expense expense) {
+    final expenseIndex = _registeredExpenses.indexOf(expense);
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+    ScaffoldMessenger.of(context)
+        .clearSnackBars(); // to clear the previous snackbar notification when deleting more than 1 item at once
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              setState(() {
+                // this will bring back the removed expense exactly at its previous location
+                _registeredExpenses.insert(expenseIndex, expense);
+              });
+            }),
+        content: const Text('Expense deleted'),
+      ),
+    );
+  }
+
   void _openAddExpenseOverlay() {
     // showModalBottomSheet and other similar functions are built in function by flutter to show some UI like a date picker or dialog
     showModalBottomSheet(
@@ -48,6 +71,16 @@ class _ExpensesState extends State<Expenses> {
 
   @override
   Widget build(context) {
+    Widget mainContent = const Center(
+      child: Text('No expenses found. Start adding some'),
+    );
+    if (_registeredExpenses.isNotEmpty) {
+      mainContent = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: _removeExpense,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Expenses Tracker"),
@@ -62,7 +95,9 @@ class _ExpensesState extends State<Expenses> {
         children: [
           const Text("The Chart"),
           // whenever there is a column inside another column, flutter will have issues rendering it because it doesn't know how to size the inner column so we should use Expanded widget or other widgets
-          Expanded(child: ExpensesList(expenses: _registeredExpenses))
+          Expanded(
+            child: mainContent,
+          )
         ],
       ),
     );

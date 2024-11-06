@@ -12,8 +12,14 @@ class ExpensesItem extends StatelessWidget {
         child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(expense.title),
+          Text(
+            expense.title,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge, // this will inherit the titleLarge custom made theme in the MaterialApp widget
+          ),
           const SizedBox(
             height: 4,
           ),
