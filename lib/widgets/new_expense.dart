@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart'; // the IOS styling language
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/models/expense.dart';
 import 'package:intl/intl.dart';
@@ -39,13 +42,23 @@ class _NewExpenseState extends State<NewExpense> {
     });
   }
 
-  void _submitExpenseData() {
-    final enteredAmount = double.tryParse(_amountController
-        .text); // tryParse will yield a null if it can't convert into a string
-    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
-    if (_titleController.text.trim().isEmpty ||
-        amountIsInvalid ||
-        _selectedDate == null) {
+  void _showDialog() {
+    if (Platform.isIOS) {
+      showCupertinoDialog(
+          context: context,
+          builder: (ctx) => CupertinoAlertDialog(
+                title: const Text("Invalid input"),
+                content: const Text(
+                    "Please make sure a valid title, amount, data and category was entered."),
+                actions: [
+                  TextButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text("Okay"))
+                ],
+              ));
+    } else {
       // show error message
       showDialog(
         context: context,
@@ -62,6 +75,17 @@ class _NewExpenseState extends State<NewExpense> {
           ],
         ),
       );
+    }
+  }
+
+  void _submitExpenseData() {
+    final enteredAmount = double.tryParse(_amountController
+        .text); // tryParse will yield a null if it can't convert into a string
+    final amountIsInvalid = enteredAmount == null || enteredAmount <= 0;
+    if (_titleController.text.trim().isEmpty ||
+        amountIsInvalid ||
+        _selectedDate == null) {
+      _showDialog();
       return;
     }
 
@@ -89,96 +113,115 @@ class _NewExpenseState extends State<NewExpense> {
   // }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 48, 16, 10),
-      child: Column(
-        children: [
-          TextField(
-            controller: _titleController,
-            // onChanged: _textFieldValue,
-            maxLength: 50,
-            decoration: const InputDecoration(
-              label: Text("Title"),
+    //  viewInsets hold informations about UI elements that might be overlapping certain parts of the UI
+    //  since the keyboard slides in from the bottom and overlapm the UI
+    final keyboardSpace = MediaQuery.of(context).viewInsets.bottom;
+    //
+    return LayoutBuilder(
+      builder: (ctx, constraints) {
+        //  the constraints parameter holds information about the constraints applied by the parent widget
+        //using this new LayoutBuilder will make the widget available to use anywhere else in the widget tree and only care about the constraints in the parent widget and not care about the available screen width or height
+        final width = constraints.maxWidth;
+
+        return SizedBox(
+          height: double.infinity,
+          width: double.infinity,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 48, 16, keyboardSpace + 16),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    // onChanged: _textFieldValue,
+                    maxLength: 50,
+                    decoration: const InputDecoration(
+                      label: Text("Title"),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      // the Textfield should be wrapped with Expanded widget because it takes as much horizontally space as possible and the Row widget doesn't restrict it
+                      Expanded(
+                        child: TextField(
+                          controller: _amountController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                              label: Text("Amount"), prefixText: '\$  '),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Expanded(
+                          child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            _selectedDate == null
+                                ? 'No date selected'
+                                : formatter.format(_selectedDate!),
+                          ),
+                          IconButton(
+                              onPressed: _showDatePicker,
+                              icon: const Icon(
+                                Icons.calendar_month,
+                              ))
+                        ],
+                      ))
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Row(
+                    children: [
+                      DropdownButton(
+                          value: _selectedCategory,
+                          // the DropDownButton widget renders a button that will show a drop down when clicked, the items property wants a list of DropDownMenuItem values
+                          // the DropdownMenuItem takes a widget
+                          items: Category.values
+                              .map(
+                                (category) => DropdownMenuItem(
+                                  // this value parameter will be stored internally for every dropdown item in the list and it will be the same value on the onChanged function whenever the user selects on the drop down items
+
+                                  value: category,
+                                  child: Text(
+                                    category.name.toUpperCase(),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            if (value == null) {
+                              return;
+                            }
+                            setState(() {
+                              _selectedCategory = value;
+                            });
+                          }),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text("Cancel"),
+                      ),
+                      ElevatedButton(
+                        onPressed: _submitExpenseData,
+                        child: const Text("Save Expense"),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
-          Row(
-            children: [
-              // the Textfield should be wrapped with Expanded widget because it takes as much horizontally space as possible and the Row widget doesn't restrict it
-              Expanded(
-                child: TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                      label: Text("Amount"), prefixText: '\$  '),
-                ),
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Expanded(
-                  child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    _selectedDate == null
-                        ? 'No date selected'
-                        : formatter.format(_selectedDate!),
-                  ),
-                  IconButton(
-                      onPressed: _showDatePicker,
-                      icon: const Icon(
-                        Icons.calendar_month,
-                      ))
-                ],
-              ))
-            ],
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          Row(
-            children: [
-              DropdownButton(
-                  value: _selectedCategory,
-                  // the DropDownButton widget renders a button that will show a drop down when clicked, the items property wants a list of DropDownMenuItem values
-                  // the DropdownMenuItem takes a widget
-                  items: Category.values
-                      .map(
-                        (category) => DropdownMenuItem(
-                          // this value parameter will be stored internally for every dropdown item in the list and it will be the same value on the onChanged function whenever the user selects on the drop down items
-
-                          value: category,
-                          child: Text(
-                            category.name.toUpperCase(),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value == null) {
-                      return;
-                    }
-                    setState(() {
-                      _selectedCategory = value;
-                    });
-                  }),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Cancel"),
-              ),
-              ElevatedButton(
-                onPressed: _submitExpenseData,
-                child: const Text("Save Expense"),
-              ),
-            ],
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 }

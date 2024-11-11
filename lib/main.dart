@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/widgets/expenses.dart';
+// import 'package:flutter/services.dart';
 
 var KColorScheme = ColorScheme.fromSeed(
   seedColor: const Color.fromRGBO(80, 200, 120, 1),
@@ -11,6 +12,10 @@ var KDarkColorScheme = ColorScheme.fromSeed(
 );
 
 void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.portraitUp,
+  // ]).then((fn) {
   runApp(
     MaterialApp(
       theme: ThemeData().copyWith(
@@ -49,12 +54,28 @@ void main() {
         textTheme: ThemeData().textTheme.copyWith(
               titleLarge: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: KDarkColorScheme.onSecondaryContainer,
+                  color: KDarkColorScheme.onSurface,
                   fontSize: 14),
+              bodySmall: TextStyle(
+                color: KDarkColorScheme.onSurface,
+              ),
+              bodyLarge: TextStyle(
+                color: KDarkColorScheme.onSurface,
+              ),
+              bodyMedium: TextStyle(
+                color: KDarkColorScheme.onSurface,
+              ),
             ),
+        inputDecorationTheme: const InputDecorationTheme(
+          labelStyle: TextStyle(color: Colors.green),
+          hintStyle: TextStyle(color: Colors.green),
+        ),
       ),
-      // themeMode:    ThemeMode.system, // this will make the app follow the system theme - but its the default setting
+
+      // themeMode: ThemeMode.light,
+      // this will make the app follow the system theme - but its the default setting
       home: Expenses(),
     ),
   );
+  // }); // uncomment this to force the app to run in only portrait  up mode
 }
